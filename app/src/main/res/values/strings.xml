@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">壓力釋放站</string>
+    <string name="title_home">首页</string>
+    <string name="title_statistics">統計</string>
+    <string name="title_leaderboard">排行榜</string>
+    <string name="title_relaxation">舒壓</string>
+</resources>

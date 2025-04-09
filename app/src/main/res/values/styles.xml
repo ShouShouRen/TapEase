@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 選中項目的文字樣式 -->
+    <style name="BottomNavigationView.ActiveItemTextAppearance" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 未選中項目的文字樣式 -->
+    <style name="BottomNavigationView.InactiveItemTextAppearance" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">16sp</item>
+    </style>
+
+</resources>
