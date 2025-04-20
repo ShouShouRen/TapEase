@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="點滴輕鬆"
-        android:textSize="24sp"
+        android:textSize="42sp"
         android:textStyle="bold"
         android:layout_marginBottom="32dp"/>
 
@@ -38,7 +38,7 @@
         android:id="@+id/releaseCount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="今日已釋放 0 次"
-        android:textSize="18sp"
+        android:text=""
+        android:textSize="24sp"
         android:layout_marginTop="32dp"/>
 </LinearLayout>

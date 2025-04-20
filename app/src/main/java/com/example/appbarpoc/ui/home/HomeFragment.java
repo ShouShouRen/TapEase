@@ -33,10 +33,13 @@ public class HomeFragment extends Fragment {
         LinearLayout faceContainer = binding.faceContainer;
         ImageView faceImage = binding.faceImage;
         TextView releaseText = binding.releaseCount;
+        releaseText.setText("今日已釋放 " + releaseCount + " 次");
+
 
         faceContainer.setOnClickListener(v -> {
             releaseCount++;
             releaseText.setText("今日已釋放 " + releaseCount + " 次");
+
 
             faceImage.setImageResource(R.drawable.baseline_pie_chart_24);
 
@@ -49,11 +52,6 @@ public class HomeFragment extends Fragment {
             scale.setRepeatMode(ScaleAnimation.REVERSE);
             faceImage.startAnimation(scale);
 
-            // 震動
-//            Vibrator vibrator = (Vibrator) requireContext().getSystemService(getContext().VIBRATOR_SERVICE);
-//            if (vibrator != null && vibrator.hasVibrator()) {
-//                vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
-//            }
 
             new Handler().postDelayed(() -> {
                 faceImage.setImageResource(R.drawable.baseline_favorite_24);

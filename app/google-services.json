@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "454099166692",
+    "project_id": "tapease-android-app",
+    "storage_bucket": "tapease-android-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:454099166692:android:d029d2095a6ab79c5ed3f1",
+        "android_client_info": {
+          "package_name": "com.example.appbarpoc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjO7Snerg5W3AFBGSKQrFjY3MMKLB2YBA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
