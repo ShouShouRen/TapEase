@@ -1,68 +1,85 @@
 package com.example.appbarpoc.ui.home;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.ScaleAnimation;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-
+import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-
+import com.example.appbarpoc.ClickDetailActivity;
 import com.example.appbarpoc.R;
-import com.example.appbarpoc.databinding.FragmentHomeBinding;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class HomeFragment extends Fragment {
-    private FragmentHomeBinding binding;
-    private int releaseCount = 0;
-    private boolean isRelaxed = false;
+    FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    FirebaseUser user = mAuth.getCurrentUser();
+    private static final String TAG = "HomeFragment";
 
-    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+            ViewGroup container, Bundle savedInstanceState) {
+        View root = inflater.inflate(R.layout.fragment_home, container, false);
 
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        try {
+            CardView smileCard = root.findViewById(R.id.smileCard);
+            CardView countCard = root.findViewById(R.id.countCard);
 
-        LinearLayout faceContainer = binding.faceContainer;
-        ImageView faceImage = binding.faceImage;
-        TextView releaseText = binding.releaseCount;
-        releaseText.setText("今日已釋放 " + releaseCount + " 次");
+            if (smileCard != null) {
+                smileCard.setOnClickListener(v -> {
+                    try {
+                        if (getActivity() != null) {
+                            Intent intent = new Intent(getActivity(), ClickDetailActivity.class);
+                            startActivity(intent);
+                        } else {
+                            Log.e(TAG, "Activity is null when trying to start DetailActivity");
+                            Toast.makeText(requireContext(), "無法開啟詳情頁面", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error starting DetailActivity", e);
+                        Toast.makeText(requireContext(), "開啟詳情頁面時發生錯誤", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Log.e(TAG, "smileCard view not found");
+            }
 
+            if (countCard != null) {
+                countCard.setOnClickListener(v -> {
+                    Toast.makeText(requireContext(), "大叫釋放模式即將推出", Toast.LENGTH_SHORT).show();
+                });
+            } else {
+                Log.e(TAG, "countCard view not found");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error in onCreateView", e);
+        }
 
-        faceContainer.setOnClickListener(v -> {
-            releaseCount++;
-            releaseText.setText("今日已釋放 " + releaseCount + " 次");
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
+        TextView userNameTextView = root.findViewById(R.id.HelloUserName);
 
-
-            faceImage.setImageResource(R.drawable.baseline_pie_chart_24);
-
-            ScaleAnimation scale = new ScaleAnimation(
-                    1.0f, 1.2f, 1.0f, 1.2f,
-                    ScaleAnimation.RELATIVE_TO_SELF, 0.5f,
-                    ScaleAnimation.RELATIVE_TO_SELF, 0.5f);
-            scale.setDuration(150);
-            scale.setRepeatCount(1);
-            scale.setRepeatMode(ScaleAnimation.REVERSE);
-            faceImage.startAnimation(scale);
-
-
-            new Handler().postDelayed(() -> {
-                faceImage.setImageResource(R.drawable.baseline_favorite_24);
-            }, 1000);
-        });
-
+        if (user != null) {
+            db.collection("users").document(user.getUid()).get()
+                    .addOnSuccessListener(document -> {
+                        if (document.exists()) {
+                            String name = document.getString("name");
+                            userNameTextView.setText(name);
+                        }
+                    });
+        }
         return root;
     }
+
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "HomeFragment resumed");
     }
 }
