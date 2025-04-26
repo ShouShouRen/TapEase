@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">點滴輕鬆</string>
+    <string name="tab_today">今日</string>
+    <string name="tab_week">7天</string>
+    <string name="tab_month">30天</string>
+    <string name="tab_year">今年</string>
     <string name="title_home">首頁</string>
     <string name="title_statistics">統計</string>
     <string name="title_leaderboard">排行榜</string>
