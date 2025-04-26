@@ -18,6 +18,7 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppBarPoc">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,16 +29,19 @@
         <activity
             android:name=".LoginActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppBarPoc.NoActionBar" />
 
         <activity
             android:name=".RegisterActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppBarPoc.NoActionBar" />
 
         <activity
             android:name=".MainActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:theme="@style/Theme.AppBarPoc.NoActionBar" />
 
