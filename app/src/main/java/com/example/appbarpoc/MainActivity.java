@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
                 R.id.navigation_statistics,
                 R.id.navigation_leaderboard,
                 R.id.navigation_relaxation)
-                .setDrawerLayout(drawerLayout)
                 .build();
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
