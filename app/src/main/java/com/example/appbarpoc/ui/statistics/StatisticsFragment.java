@@ -16,6 +16,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -55,7 +56,7 @@ public class StatisticsFragment extends Fragment {
             public void onTabReselected(TabLayout.Tab tab) {
             }
         });
-        tabLayout.getTabAt(0).select(); // 預設選今日
+        tabLayout.getTabAt(0).select();
         getClickCount("today");
         return root;
     }
@@ -96,24 +97,38 @@ public class StatisticsFragment extends Fragment {
                 .collection("clicks")
                 .whereGreaterThanOrEqualTo("timestamp", fromDate)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    int clickCount = queryDocumentSnapshots.size();
-                    textView.setText(getPeriodText(period, clickCount));
+                .addOnSuccessListener(clickSnapshots -> {
+                    int clickCount = clickSnapshots.size();
+                    db.collection("user_yells")
+                            .document(userId)
+                            .collection("records")
+                            .whereGreaterThanOrEqualTo("timestamp", fromDate)
+                            .get()
+                            .addOnSuccessListener(yellSnapshots -> {
+                                double maxDecibel = 0.0;
+                                for (QueryDocumentSnapshot doc : yellSnapshots) {
+                                    Double d = doc.getDouble("maxDecibel");
+                                    if (d != null && d > maxDecibel) {
+                                        maxDecibel = d;
+                                    }
+                                }
+                                textView.setText(getPeriodText(period, clickCount, maxDecibel));
+                            });
                 });
     }
 
-    private String getPeriodText(String period, int count) {
+    private String getPeriodText(String period, int count, double maxDecibel) {
         switch (period) {
             case "today":
-                return String.format("今日已釋放 %d 次", count);
+                return String.format("今日已釋放 %d 次，最大分貝 %.1f dB", count, maxDecibel);
             case "week":
-                return String.format("近 7 天已釋放 %d 次", count);
+                return String.format("近 7 天已釋放 %d 次，最大分貝 %.1f dB", count, maxDecibel);
             case "month":
-                return String.format("近 30 天已釋放 %d 次", count);
+                return String.format("近 30 天已釋放 %d 次，最大分貝 %.1f dB", count, maxDecibel);
             case "year":
-                return String.format("今年已釋放 %d 次", count);
+                return String.format("今年已釋放 %d 次，最大分貝 %.1f dB", count, maxDecibel);
             default:
-                return String.format("已釋放 %d 次", count);
+                return String.format("已釋放 %d 次，最大分貝 %.1f dB", count, maxDecibel);
         }
     }
 

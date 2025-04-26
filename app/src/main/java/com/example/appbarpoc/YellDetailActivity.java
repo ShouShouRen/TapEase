@@ -17,6 +17,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.Date;
+
 public class YellDetailActivity extends AppCompatActivity {
 
     private AudioRecord audioRecord;
@@ -44,14 +49,16 @@ public class YellDetailActivity extends AppCompatActivity {
         maxDecibelText = findViewById(R.id.max_decibel_text);
 
         // 檢查權限
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestAudioPermission();
         }
 
         // 按鈕點擊
         startButton.setOnClickListener(v -> {
             if (!isRecording) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(this,
+                        Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                     startRecording();
                     startButton.setText("錄音中...");
                     maxDecibel = 0.0;
@@ -65,7 +72,7 @@ public class YellDetailActivity extends AppCompatActivity {
 
     private void requestAudioPermission() {
         ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.RECORD_AUDIO},
+                new String[] { Manifest.permission.RECORD_AUDIO },
                 REQUEST_AUDIO_PERMISSION_CODE);
     }
 
@@ -74,7 +81,8 @@ public class YellDetailActivity extends AppCompatActivity {
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
@@ -119,7 +127,8 @@ public class YellDetailActivity extends AppCompatActivity {
     }
 
     private double getAmplitude(short[] buffer, int read) {
-        if (read <= 0) return 0;
+        if (read <= 0)
+            return 0;
         double sum = 0;
         for (int i = 0; i < read; i++) {
             sum += buffer[i] * buffer[i];
@@ -128,7 +137,8 @@ public class YellDetailActivity extends AppCompatActivity {
     }
 
     private double calculateDecibel(double amplitude) {
-        if (amplitude <= 0) return 0;
+        if (amplitude <= 0)
+            return 0;
         double referenceAmplitude = 1.0;
         double ratio = amplitude / referenceAmplitude;
         double db = 20 * Math.log10(ratio);
@@ -146,6 +156,20 @@ public class YellDetailActivity extends AppCompatActivity {
                 startButton.setText("開始錄音");
                 maxDecibelText.setText(String.format("最大分貝: %.1f dB", maxDecibel));
             });
+
+            // 錄音結束時寫入 Firestore
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                String userId = user.getUid();
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                java.util.Map<String, Object> data = new java.util.HashMap<>();
+                data.put("timestamp", new Date());
+                data.put("maxDecibel", maxDecibel);
+                db.collection("user_yells")
+                        .document(userId)
+                        .collection("records")
+                        .add(data);
+            }
         }
     }
 
