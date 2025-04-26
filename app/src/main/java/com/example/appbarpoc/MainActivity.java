@@ -6,7 +6,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +20,7 @@ import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -112,41 +112,86 @@ public class MainActivity extends AppCompatActivity {
 
     private void showChangePasswordDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_change_password, null);
+        TextInputEditText currentPasswordInput = dialogView.findViewById(R.id.current_password);
         TextInputEditText newPasswordInput = dialogView.findViewById(R.id.new_password);
         TextInputEditText confirmPasswordInput = dialogView.findViewById(R.id.confirm_password);
 
-        new AlertDialog.Builder(this)
+        TextInputLayout currentPasswordLayout = dialogView.findViewById(R.id.current_password_layout);
+        TextInputLayout newPasswordLayout = dialogView.findViewById(R.id.new_password_layout);
+        TextInputLayout confirmPasswordLayout = dialogView.findViewById(R.id.confirm_password_layout);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.change_password)
                 .setView(dialogView)
-                .setPositiveButton(R.string.change, (dialog, which) -> {
-                    String newPassword = newPasswordInput.getText().toString();
-                    String confirmPassword = confirmPasswordInput.getText().toString();
-
-                    if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
-                        Toast.makeText(this, R.string.enter_new_password, Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    if (!newPassword.equals(confirmPassword)) {
-                        Toast.makeText(this, "密碼不一致", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    FirebaseUser user = mAuth.getCurrentUser();
-                    if (user != null) {
-                        user.updatePassword(newPassword)
-                                .addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(this, R.string.password_changed,
-                                                Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        Toast.makeText(this, R.string.error_change_password,
-                                                Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                    }
-                })
+                .setPositiveButton(R.string.change, null)
                 .setNegativeButton(R.string.cancel, null)
-                .show();
+                .create();
+
+        dialog.setOnShowListener(dialogInterface -> {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
+                // 清除之前的錯誤訊息
+                currentPasswordLayout.setError(null);
+                newPasswordLayout.setError(null);
+                confirmPasswordLayout.setError(null);
+
+                String currentPassword = currentPasswordInput.getText().toString();
+                String newPassword = newPasswordInput.getText().toString();
+                String confirmPassword = confirmPasswordInput.getText().toString();
+
+                // 驗證輸入
+                boolean hasError = false;
+
+                if (currentPassword.isEmpty()) {
+                    currentPasswordLayout.setError("請輸入目前密碼");
+                    hasError = true;
+                }
+
+                if (newPassword.isEmpty()) {
+                    newPasswordLayout.setError("請輸入新密碼");
+                    hasError = true;
+                }
+
+                if (confirmPassword.isEmpty()) {
+                    confirmPasswordLayout.setError("請再次輸入新密碼");
+                    hasError = true;
+                }
+
+                if (!newPassword.equals(confirmPassword)) {
+                    confirmPasswordLayout.setError("新密碼與確認密碼不相符");
+                    hasError = true;
+                }
+
+                if (hasError) {
+                    return;
+                }
+
+                // 驗證當前密碼
+                FirebaseUser user = mAuth.getCurrentUser();
+                if (user != null && user.getEmail() != null) {
+                    mAuth.signInWithEmailAndPassword(user.getEmail(), currentPassword)
+                            .addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    // 當前密碼正確，更新新密碼
+                                    user.updatePassword(newPassword)
+                                            .addOnCompleteListener(updateTask -> {
+                                                if (updateTask.isSuccessful()) {
+                                                    dialog.dismiss();
+                                                    new AlertDialog.Builder(MainActivity.this)
+                                                            .setMessage("密碼已成功更新")
+                                                            .setPositiveButton("確定", null)
+                                                            .show();
+                                                } else {
+                                                    newPasswordLayout.setError("密碼更新失敗，請稍後再試");
+                                                }
+                                            });
+                                } else {
+                                    currentPasswordLayout.setError("目前密碼不正確");
+                                }
+                            });
+                }
+            });
+        });
+
+        dialog.show();
     }
 }
