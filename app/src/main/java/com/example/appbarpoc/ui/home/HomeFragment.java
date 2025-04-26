@@ -13,6 +13,7 @@ import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import com.example.appbarpoc.ClickDetailActivity;
 import com.example.appbarpoc.R;
+import com.example.appbarpoc.YellDetailActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -52,7 +53,8 @@ public class HomeFragment extends Fragment {
 
             if (countCard != null) {
                 countCard.setOnClickListener(v -> {
-                    Toast.makeText(requireContext(), "大叫釋放模式即將推出", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getActivity(), YellDetailActivity.class);
+                    startActivity(intent);
                 });
             } else {
                 Log.e(TAG, "countCard view not found");

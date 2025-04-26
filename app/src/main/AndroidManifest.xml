@@ -4,6 +4,7 @@
     package="com.example.appbarpoc">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:allowBackup="true"
@@ -46,17 +47,19 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.AppBarPoc.NoActionBar" />
 
-        <activity
-            android:name=".DetailActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppBarPoc.NoActionBar" />
+
 
         <activity
             android:name=".ClickDetailActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppBarPoc.NoActionBar" />
+
+        <activity android:name=".YellDetailActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppBarPoc.NoActionBar"
+            />
 
     </application>
 

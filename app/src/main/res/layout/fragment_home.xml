@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="@android:color/white">
 
-    <!-- 用LinearLayout水平排列Hi、使用者名稱、圖標 -->
     <LinearLayout
         android:id="@+id/titleRow"
         android:layout_width="wrap_content"
@@ -115,13 +114,10 @@
                 android:textColor="@android:color/black"
                 android:layout_marginStart="16dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="開始倒數"
-                android:textColor="#90CAB1"
-                android:textSize="16sp"
-                android:padding="8dp"/>
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/baseline_chevron_right_24"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
