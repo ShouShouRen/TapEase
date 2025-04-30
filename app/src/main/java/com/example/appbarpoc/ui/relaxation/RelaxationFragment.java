@@ -33,7 +33,6 @@ public class RelaxationFragment extends Fragment {
     private View animationCircle;
     private TextView phaseText;
     private TextView countdownText;
-    private Button startButton;
 
     private int inhaleColor;
     private int holdColor;
@@ -41,6 +40,7 @@ public class RelaxationFragment extends Fragment {
 
     private RelaxationViewModel viewModel;
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -51,7 +51,7 @@ public class RelaxationFragment extends Fragment {
         animationCircle = binding.circleView;
         phaseText = binding.textPhase;
         countdownText = binding.textCountdown;
-        startButton = binding.startButton;
+        Button startButton = binding.startButton;
 
         inhaleColor = ContextCompat.getColor(requireContext(), R.color.inhale);
         holdColor = ContextCompat.getColor(requireContext(), R.color.hold);
