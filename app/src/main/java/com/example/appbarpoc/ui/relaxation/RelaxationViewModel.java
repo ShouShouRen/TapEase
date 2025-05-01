@@ -68,6 +68,7 @@ public class RelaxationViewModel extends ViewModel {
                     timeRemaining.postValue(time[0]);
                     handler.postDelayed(this, 1000);
                 } else {
+                    timeRemaining.postValue(0);
                     onFinish.run();
                 }
             }
