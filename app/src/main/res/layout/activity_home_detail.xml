@@ -5,7 +5,7 @@
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="?android:colorBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
             android:text="點滴輕鬆"
-            android:textColor="@android:color/black"
+            android:textColor="?android:textColorPrimary"
             android:textSize="32sp" />
 
         <LinearLayout
@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:text="今日已釋放 0 次"
-            android:textColor="#666666"
+            android:textColor="?android:textColorSecondary"
             android:textSize="20sp" />
 
         <Button
@@ -58,7 +58,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:onClick="Onback"
-            android:text="返回" />
+            android:text="返回"
+            style="@style/CustomButtonStyle" />
 
     </LinearLayout>
 

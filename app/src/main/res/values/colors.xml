@@ -12,4 +12,5 @@
     <color name="inhale">#A8E6CF</color>
     <color name="hold">#FFD3B6</color>
     <color name="exhale">#FF8C94</color>
+    <color name="button_color">#FF222222</color>
 </resources>

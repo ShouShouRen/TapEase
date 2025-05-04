@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FFFFFFFF</color>
+    <color name="white">#FF000000</color>
+    <color name="gray">#FFB0B0B0</color>
+    <color name="light_gray">#FF222222</color>
+    <color name="purple_200">#FF222222</color>
+    <color name="purple_500">#FF222222</color>
+    <color name="purple_700">#FF222222</color>
+    <color name="teal_200">#FF222222</color>
+    <color name="teal_700">#FF222222</color>
+    <color name="inhale">#FF2E3D30</color>
+    <color name="hold">#FF3A2E1A</color>
+    <color name="exhale">#FF2E1A1A</color>
+    <color name="button_color">#90CAB1</color>
+</resources>
