@@ -60,26 +60,27 @@
                 android:textColor="?android:textColorSecondary"
                 android:textSize="20sp" />
 
-            <!-- 能量條 -->
-            <ProgressBar
-                android:id="@+id/energyBar"
-                style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:max="100"
-                android:progress="0" />
-
-            <!-- Fever 模式倒數 -->
+            <!-- 新增 Fever 模式提示 -->
             <TextView
-                android:id="@+id/feverCountdown"
+                android:id="@+id/feverText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text=""
-                android:textColor="#FF4081"
+                android:textColor="@android:color/holo_red_dark"
                 android:textSize="18sp"
-                android:visibility="gone" />
+                android:visibility="visible" />
+
+            <!-- 能量條放在釋放次數下方 -->
+            <ProgressBar
+                android:id="@+id/energyBar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="24dp"
+                android:layout_marginTop="8dp"
+                android:progress="0"
+                android:max="100"
+                android:progressDrawable="@drawable/custom_progressbar" />
 
             <!-- 返回按鈕 -->
             <Button

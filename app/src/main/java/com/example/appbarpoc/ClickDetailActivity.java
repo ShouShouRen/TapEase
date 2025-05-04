@@ -1,7 +1,10 @@
 package com.example.appbarpoc;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.graphics.Path;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,6 +14,7 @@ import android.os.Vibrator;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -30,6 +34,7 @@ import java.util.Random;
 
 public class ClickDetailActivity extends AppCompatActivity {
   private TextView releaseCount;
+  private TextView feverText;
   private LinearLayout faceContainer;
   private ImageView faceImage;
   private ProgressBar feverBar;
@@ -54,9 +59,11 @@ public class ClickDetailActivity extends AppCompatActivity {
     setContentView(R.layout.activity_home_detail);
 
     releaseCount = findViewById(R.id.releaseCount);
+    feverText = findViewById(R.id.feverText);
     faceContainer = findViewById(R.id.faceContainer);
     faceImage = findViewById(R.id.faceImage);
     rootLayout = findViewById(R.id.rootLayout);
+    feverBar = findViewById(R.id.energyBar);
 
     // 初始化震動器
     vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
@@ -79,11 +86,13 @@ public class ClickDetailActivity extends AppCompatActivity {
       if (localCount < 0) return;
 
       // 1. 切換表情圖
-      faceIndex = (faceIndex + 1) % faceImages.length;
-      faceImage.setImageResource(faceImages[faceIndex]);
+      if(localCount%10==0) {//每點10下進行一次切換
+        faceIndex = (faceIndex + 1) % faceImages.length;
+        faceImage.setImageResource(faceImages[faceIndex]);
+      }
 
       // 2. 製造掉落表情動畫
-      spawnFallingFace();
+      spawnFallingFace(faceImages[faceIndex]);
 
       // 3. 每次點擊都震動
       if (vibrator != null) {
@@ -93,11 +102,11 @@ public class ClickDetailActivity extends AppCompatActivity {
       // 4. Fever 模式累積能量
       if (!isFever) {
         feverProgress += 1;
+        updateEnergyBarAnimated(feverProgress);// EnergyBar動畫更新
         if (feverProgress >= 100) {
           startFeverMode();
         }
       }
-      feverBar.setProgress(feverProgress);
 
       // 5. Firebase 點擊記錄
       localCount++;
@@ -118,29 +127,38 @@ public class ClickDetailActivity extends AppCompatActivity {
     });
   }
 
-  private void spawnFallingFace() {
-    ImageView newFace = new ImageView(this);
-    Drawable drawable = ContextCompat.getDrawable(this, faceImages[faceIndex]);
-    newFace.setImageDrawable(drawable);
-    newFace.setAlpha(0.5f);
-    newFace.setScaleX(0.5f);
-    newFace.setScaleY(0.5f);
-    newFace.setLayoutParams(new FrameLayout.LayoutParams(150, 150));
-    newFace.setX(faceContainer.getX() + 100);
-    newFace.setY(faceContainer.getY() + 200);
-    rootLayout.addView(newFace);
+  private void spawnFallingFace(int drawableResId) {
+    ImageView emoji = new ImageView(this);
+    emoji.setImageResource(drawableResId);
+    emoji.setAlpha(0.5f);
+    int size = 80;
+    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size);
+    emoji.setLayoutParams(params);
 
-    ObjectAnimator animator = ObjectAnimator.ofFloat(newFace, "translationY", newFace.getY(), rootLayout.getHeight());
-    animator.setDuration(isFever ? 700 : 1500);
-    animator.setInterpolator(new AccelerateInterpolator());
-    animator.start();
+    rootLayout.addView(emoji);
+    emoji.setX(faceContainer.getX() + faceContainer.getWidth() / 2 - size / 2);
+    emoji.setY(faceContainer.getY());
 
-    animator.addListener(new android.animation.AnimatorListenerAdapter() {
+    // 隨機向左下或右下
+    Random random = new Random();
+    float endX = emoji.getX() + (random.nextBoolean() ? -random.nextInt(300) : random.nextInt(300));
+    float endY = emoji.getY() + 1000 + random.nextInt(300);
+
+    Path path = new Path();
+    path.moveTo(emoji.getX(), emoji.getY());
+    float controlX = (emoji.getX() + endX) / 2 + random.nextInt(100) - 50;
+    float controlY = emoji.getY() + random.nextInt(300);
+    path.quadTo(controlX, controlY, endX, endY);
+
+    ObjectAnimator animator = ObjectAnimator.ofFloat(emoji, View.X, View.Y, path);
+    animator.setDuration(2000);
+    animator.addListener(new AnimatorListenerAdapter() {
       @Override
-      public void onAnimationEnd(android.animation.Animator animation) {
-        rootLayout.removeView(newFace);
+      public void onAnimationEnd(Animator animation) {
+        ((ViewGroup) emoji.getParent()).removeView(emoji);
       }
     });
+    animator.start();
   }
 
   private void startFeverMode() {
@@ -149,7 +167,7 @@ public class ClickDetailActivity extends AppCompatActivity {
       CountDownTimer feverTimer = new CountDownTimer(30000, 1000) {
           @Override
           public void onTick(long millisUntilFinished) {
-              releaseCount.setText("Fever模式中！" + (millisUntilFinished / 1000) + "秒剩餘");
+              feverText.setText("Fever模式中！" + (millisUntilFinished / 1000) + "秒剩餘");
           }
 
           @Override
@@ -157,10 +175,19 @@ public class ClickDetailActivity extends AppCompatActivity {
               isFever = false;
               feverProgress = 0;
               feverBar.setProgress(0);
+              feverText.setText(""); // Fever 結束後清除文字
               releaseCount.setText(getPeriodText("today", localCount));
           }
       }.start();
   }
+
+  private void updateEnergyBarAnimated(int progress) {
+    ObjectAnimator progressAnimator = ObjectAnimator.ofInt(feverBar, "progress", feverBar.getProgress(), progress);
+    progressAnimator.setDuration(300); // 動畫時長
+    progressAnimator.setInterpolator(new DecelerateInterpolator());
+    progressAnimator.start();
+  }
+
 
   public void Onback(View view) {
     finish();
