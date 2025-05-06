@@ -5,11 +5,11 @@ plugins {
     id 'com.google.gms.google-services'
 
 }
-
 dependencies {
     // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:33.12.0')
-
+    // 加入 Lottie 依賴才能使用Lottie動畫
+    implementation 'com.airbnb.android:lottie:6.1.0'
 
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
