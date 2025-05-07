@@ -1,66 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:colorBackground">
+    tools:context=".ClickDetailActivity">
 
-    <LinearLayout
+    <!-- 主畫面 -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="match_parent"
+        android:background="?android:colorBackground">
 
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:text="點滴輕鬆"
-            android:textColor="?android:textColorPrimary"
-            android:textSize="32sp" />
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/fireworkView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            app:lottie_autoPlay="false"
+            app:lottie_loop="false"
+            android:translationZ="10dp"
+            app:lottie_fileName="firework_animation.json" />
+
+        <View
+            android:id="@+id/feverOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#66FF4081"
+            android:visibility="gone" />
 
         <LinearLayout
-            android:id="@+id/faceContainer"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:background="@android:color/transparent"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:id="@+id/faceImage"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                android:contentDescription="表情圖片"
-                android:src="@drawable/baseline_tag_faces_24" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/releaseCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="今日已釋放 0 次"
-            android:textColor="?android:textColorSecondary"
-            android:textSize="20sp" />
-
-        <Button
-            android:id="@+id/button"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:onClick="Onback"
-            android:text="返回"
-            style="@style/CustomButtonStyle" />
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:text="點滴輕鬆"
+                android:textColor="?android:textColorPrimary"
+                android:textSize="32sp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- 可點擊的表情容器 -->
+            <LinearLayout
+                android:id="@+id/faceContainer"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:background="@android:color/transparent"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/faceImage"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:contentDescription="表情圖片"
+                    android:src="@drawable/baseline_tag_faces_24" />
+            </LinearLayout>
+
+            <!-- 今日點擊次數 -->
+            <TextView
+                android:id="@+id/releaseCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="今日已釋放 0 次"
+                android:textColor="?android:textColorSecondary"
+                android:textSize="20sp" />
+
+            <!-- 新增 Fever 模式提示 -->
+            <TextView
+                android:id="@+id/feverText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text=""
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="18sp"
+                android:visibility="visible" />
+
+            <!-- 能量條放在釋放次數下方 -->
+            <ProgressBar
+                android:id="@+id/energyBar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="24dp"
+                android:layout_marginTop="8dp"
+                android:progress="0"
+                android:max="100"
+                android:progressDrawable="@drawable/custom_progressbar" />
+
+            <!-- 返回按鈕 -->
+            <Button
+                android:id="@+id/button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:onClick="Onback"
+                android:text="返回"
+                style="@style/CustomButtonStyle" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 漂浮表情將動態加入 rootLayout 上層 -->
+
+</FrameLayout>
