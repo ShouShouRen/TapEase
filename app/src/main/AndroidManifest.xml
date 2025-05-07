@@ -65,7 +65,6 @@
             android:theme="@style/Theme.AppBarPoc.NoActionBar"
             />
 
-<<<<<<< Updated upstream
         <!-- 註冊定時通知廣播接收器 -->
         <receiver
             android:name=".receiver.AlarmReceiver"
@@ -81,13 +80,11 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-=======
         <activity
             android:name=".MessageDetailActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppBarPoc.NoActionBar" />
->>>>>>> Stashed changes
 
     </application>
 
