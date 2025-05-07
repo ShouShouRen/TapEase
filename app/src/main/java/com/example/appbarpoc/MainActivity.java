@@ -1,6 +1,11 @@
 package com.example.appbarpoc;
 
+import android.Manifest;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -10,6 +15,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
@@ -17,6 +24,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.example.appbarpoc.receiver.AlarmReceiver;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -25,15 +33,29 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-
+    private static final int NOTIFICATION_PERMISSION_CODE = 100;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // 檢查並請求通知權限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIFICATION_PERMISSION_CODE);
+            }
+        }
+
+        scheduleAlarm();
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -73,6 +95,26 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    private void scheduleAlarm() {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+
+        int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_IMMUTABLE : 0;
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, flags | PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.set(Calendar.HOUR_OF_DAY, 21);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+        }
+
+        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+
     }
 
     private void setupNavigationDrawer(NavigationView navigationView) {
