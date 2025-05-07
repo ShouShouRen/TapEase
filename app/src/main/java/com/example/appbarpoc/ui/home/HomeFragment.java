@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import com.example.appbarpoc.ClickDetailActivity;
 import com.example.appbarpoc.R;
 import com.example.appbarpoc.YellDetailActivity;
+import com.example.appbarpoc.MessageDetailActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -31,6 +32,7 @@ public class HomeFragment extends Fragment {
         try {
             CardView smileCard = root.findViewById(R.id.smileCard);
             CardView countCard = root.findViewById(R.id.countCard);
+            CardView messageCard = root.findViewById(R.id.messageCard);
 
             if (smileCard != null) {
                 smileCard.setOnClickListener(v -> {
@@ -58,6 +60,14 @@ public class HomeFragment extends Fragment {
                 });
             } else {
                 Log.e(TAG, "countCard view not found");
+            }
+            if (messageCard != null) {
+                messageCard.setOnClickListener(v -> {
+                    Intent intent = new Intent(getActivity(), MessageDetailActivity.class);
+                    startActivity(intent);
+                });
+            } else {
+                Log.e(TAG, "messageCard view not found");
             }
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreateView", e);
