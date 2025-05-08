@@ -4,12 +4,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,10 +24,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class AchievementActivity extends AppCompatActivity {
@@ -50,15 +59,15 @@ public class AchievementActivity extends AppCompatActivity {
 
         achievementList = new ArrayList<>();
         getClickCountAndCheckAchievements();
+        getMaxDecibelAndCheckAchievements();
+        checkLoginStreakAndUnlockAchievement();
         adapter = new AchievementAdapter(this, achievementList);
         recyclerView.setAdapter(adapter);
 
     }
-
     public void Onback(View view) {
         finish();
     }
-
     private void getClickCountAndCheckAchievements() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
@@ -72,7 +81,100 @@ public class AchievementActivity extends AppCompatActivity {
             });
         }
     }
+    private void getMaxDecibelAndCheckAchievements() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            String userId = user.getUid();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+            // 假設我們要查詢最近30天的資料
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_YEAR, -30);
+            Date fromDate = calendar.getTime();
+
+            db.collection("user_yells")
+                    .document(userId)
+                    .collection("records")
+                    .whereGreaterThanOrEqualTo("timestamp", fromDate)
+                    .get()
+                    .addOnSuccessListener(yellSnapshots -> {
+                        double maxDecibel = 0.0;
+                        for (QueryDocumentSnapshot doc : yellSnapshots) {
+                            Double d = doc.getDouble("maxDecibel");
+                            if (d != null && d > maxDecibel) {
+                                maxDecibel = d;
+                            }
+                        }
+
+                        // 這裡根據最大音量解鎖成就
+                        checkVolumeAchievements(maxDecibel);
+                    });
+        }
+    }
+    private void checkLoginStreakAndUnlockAchievement() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        String userId = user.getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        DocumentReference userRef = db.collection("user_loginDays").document(userId);
+        userRef.get().addOnSuccessListener(documentSnapshot -> {
+            Log.d("LoginStreak", "成功讀取用戶資料");
+
+            Date today = getDateOnly(new Date());
+            Date lastLoginDate = documentSnapshot.getDate("lastLoginDate");
+            Long streak = documentSnapshot.getLong("streakCount");
+
+            final long[] newStreakCount = {(streak == null) ? 0 : streak};
+
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(today);
+            cal.add(Calendar.DAY_OF_YEAR, -1);
+            Date yesterday = cal.getTime();
+
+            if (!documentSnapshot.exists()) {
+                // 首次創建使用者資料
+                Log.d("LoginStreak", "首次登入，用戶文件尚不存在，正在創建");
+                newStreakCount[0] = 1;
+            } else if (lastLoginDate == null || lastLoginDate.before(yesterday)) {
+                // 非連續登入
+                newStreakCount[0] = 1;
+            } else if (!lastLoginDate.equals(today)) {
+                // 昨天有登入
+                newStreakCount[0]++;
+            }
+
+            Map<String, Object> updateData = new HashMap<>();
+            updateData.put("lastLoginDate", today);
+            updateData.put("streakCount", newStreakCount[0]);
+
+            userRef.set(updateData, SetOptions.merge()).addOnSuccessListener(unused -> {
+                Log.d("LoginStreak", "成功寫入 streakCount: " + newStreakCount[0]);
+                checkStreakAchievements((int) newStreakCount[0]);
+            }).addOnFailureListener(e -> {
+                Log.e("LoginStreak", "寫入失敗", e);
+            });
+
+        }).addOnFailureListener(e -> {
+            Log.e("LoginStreak", "讀取用戶資料失敗", e);
+        });
+    }
+
+
+
+    private void checkVolumeAchievements(double maxDecibel) {
+        if (maxDecibel >= 0)
+            achievementList.add(new Achievement(R.drawable.baseline_achievement, "感謝參與：音量達到 0 dB"));
+        if (maxDecibel >= 80)
+            achievementList.add(new Achievement(R.drawable.baseline_achievement, "吼到爆：音量達到 80 dB"));
+        if (maxDecibel >= 100)
+            achievementList.add(new Achievement(R.drawable.baseline_achievement, "雷霆咆哮：音量達到 100 dB"));
+        if (maxDecibel >= 120)
+            achievementList.add(new Achievement(R.drawable.baseline_achievement, "地鳴級怒吼：音量達到 120 dB"));
+
+        adapter.notifyDataSetChanged(); // 更新 RecyclerView 畫面
+    }
     private void checkAchievements(int clickCount) {
         achievementList.clear(); // 清除舊資料
 
@@ -86,6 +188,18 @@ public class AchievementActivity extends AppCompatActivity {
             achievementList.add(new Achievement(R.drawable.baseline_achievement, "點擊達到10000次"));
 
         adapter.notifyDataSetChanged(); // 通知 RecyclerView 更新畫面
+    }
+    private void checkStreakAchievements(int streakCount) {
+        if(streakCount >= 1)
+            achievementList.add(new Achievement(R.drawable.baseline_achievement, "連續登入 1 天"));
+        if (streakCount >= 3)
+            achievementList.add(new Achievement(R.drawable.baseline_achievement, "三日不斷：連續登入 3 天"));
+        if (streakCount >= 7)
+            achievementList.add(new Achievement(R.drawable.baseline_achievement, "一週堅持：連續登入 7 天"));
+        if (streakCount >= 30)
+            achievementList.add(new Achievement(R.drawable.baseline_achievement, "毅力之王：連續登入 30 天"));
+
+        adapter.notifyDataSetChanged(); // 更新畫面
     }
 
     public class Achievement {
@@ -106,21 +220,17 @@ public class AchievementActivity extends AppCompatActivity {
         }
     }
     public class AchievementAdapter extends RecyclerView.Adapter<AchievementAdapter.ViewHolder> {
-
         private List<Achievement> achievements;
         private Context context;
-
         public AchievementAdapter(Context context, List<Achievement> achievements) {
             this.context = context;
             this.achievements = achievements;
         }
-
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(context).inflate(R.layout.item_achievement, parent, false);
             return new ViewHolder(view);
         }
-
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
             Achievement achievement = achievements.get(position);
@@ -134,7 +244,6 @@ public class AchievementActivity extends AppCompatActivity {
                 context.startActivity(Intent.createChooser(shareIntent, "分享成就"));
             });
         }
-
         @Override
         public int getItemCount() {
             return achievements.size();
@@ -153,5 +262,13 @@ public class AchievementActivity extends AppCompatActivity {
             }
         }
     }
-
+    private Date getDateOnly(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
 }
