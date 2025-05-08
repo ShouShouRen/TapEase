@@ -165,13 +165,13 @@ public class AchievementActivity extends AppCompatActivity {
 
     private void checkVolumeAchievements(double maxDecibel) {
         if (maxDecibel >= 0)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "感謝參與：音量達到 0 dB"));
+            achievementList.add(new Achievement(R.drawable.ic_volume_bronze, "感謝參與：音量達到 0 dB"));
         if (maxDecibel >= 80)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "吼到爆：音量達到 80 dB"));
+            achievementList.add(new Achievement(R.drawable.ic_volume_bronze, "吼到爆：音量達到 80 dB"));
         if (maxDecibel >= 100)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "雷霆咆哮：音量達到 100 dB"));
+            achievementList.add(new Achievement(R.drawable.ic_volume_silver, "雷霆咆哮：音量達到 100 dB"));
         if (maxDecibel >= 120)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "地鳴級怒吼：音量達到 120 dB"));
+            achievementList.add(new Achievement(R.drawable.ic_volume_gold, "地鳴級怒吼：音量達到 120 dB"));
 
         adapter.notifyDataSetChanged(); // 更新 RecyclerView 畫面
     }
@@ -179,25 +179,25 @@ public class AchievementActivity extends AppCompatActivity {
         achievementList.clear(); // 清除舊資料
 
         if (clickCount >= 100)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "點擊達到100次"));
+            achievementList.add(new Achievement(R.drawable.ic_click_bronze, "點擊達到100次"));
         if (clickCount >= 500)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "點擊達到500次"));
+            achievementList.add(new Achievement(R.drawable.ic_click_bronze, "點擊達到500次"));
         if (clickCount >= 1000)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "點擊達到1000次"));
+            achievementList.add(new Achievement(R.drawable.ic_click_silver, "點擊達到1000次"));
         if (clickCount >= 10000)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "點擊達到10000次"));
+            achievementList.add(new Achievement(R.drawable.ic_click_gold, "點擊達到10000次"));
 
         adapter.notifyDataSetChanged(); // 通知 RecyclerView 更新畫面
     }
     private void checkStreakAchievements(int streakCount) {
         if(streakCount >= 1)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "連續登入 1 天"));
+            achievementList.add(new Achievement(R.drawable.ic_streak_bronze, "連續登入 1 天"));
         if (streakCount >= 3)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "三日不斷：連續登入 3 天"));
+            achievementList.add(new Achievement(R.drawable.ic_streak_bronze, "三日不斷：連續登入 3 天"));
         if (streakCount >= 7)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "一週堅持：連續登入 7 天"));
+            achievementList.add(new Achievement(R.drawable.ic_streak_silver, "一週堅持：連續登入 7 天"));
         if (streakCount >= 30)
-            achievementList.add(new Achievement(R.drawable.baseline_achievement, "毅力之王：連續登入 30 天"));
+            achievementList.add(new Achievement(R.drawable.ic_streak_gold, "毅力之王：連續登入 30 天"));
 
         adapter.notifyDataSetChanged(); // 更新畫面
     }

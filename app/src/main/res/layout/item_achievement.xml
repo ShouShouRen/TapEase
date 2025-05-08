@@ -22,7 +22,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:src="@drawable/baseline_achievement"
-            app:tint="#90CAB1" />
+            />
 
         <!-- 描述文字 -->
         <TextView
