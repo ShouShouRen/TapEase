@@ -11,15 +11,15 @@
         android:id="@+id/buttonBack"
         android:layout_width="48dp"
         android:layout_height="48dp"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="16dp"
         android:background="@drawable/bg_circle_white_shadow"
-        android:src="@drawable/ic_arrow_back_ios"
         android:contentDescription="返回"
         android:onClick="Onback"
-        android:layout_marginTop="18dp"
-        android:layout_marginStart="18dp"
         android:scaleType="center"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        android:src="@drawable/ic_arrow_back_ios"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 留言串 RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView

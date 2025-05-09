@@ -11,6 +11,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
+
+import com.example.appbarpoc.AchievementActivity;
 import com.example.appbarpoc.ClickDetailActivity;
 import com.example.appbarpoc.R;
 import com.example.appbarpoc.YellDetailActivity;
@@ -33,6 +35,7 @@ public class HomeFragment extends Fragment {
             CardView smileCard = root.findViewById(R.id.smileCard);
             CardView countCard = root.findViewById(R.id.countCard);
             CardView messageCard = root.findViewById(R.id.messageCard);
+            CardView AchievementCard = root.findViewById(R.id.AchievementCard);
 
             if (smileCard != null) {
                 smileCard.setOnClickListener(v -> {
@@ -68,6 +71,14 @@ public class HomeFragment extends Fragment {
                 });
             } else {
                 Log.e(TAG, "messageCard view not found");
+            }
+            if (AchievementCard != null) {
+                AchievementCard.setOnClickListener(v -> {
+                    Intent intent = new Intent(getActivity(), AchievementActivity.class);
+                    startActivity(intent);
+                });
+            } else {
+                Log.e(TAG, "AchievementCard view not found");
             }
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreateView", e);
