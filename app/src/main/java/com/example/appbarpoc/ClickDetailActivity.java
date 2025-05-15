@@ -62,9 +62,18 @@ public class ClickDetailActivity extends AppCompatActivity {
 
 
   private int[] faceImages = {
-          R.drawable.face_happy,
-          R.drawable.face_angry,
-          R.drawable.face_cry
+          R.drawable.emoji_1,
+          R.drawable.emoji_2,
+          R.drawable.emoji_3,
+          R.drawable.emoji_4,
+          R.drawable.emoji_5,
+          R.drawable.emoji_6,
+          R.drawable.emoji_7,
+          R.drawable.emoji_8,
+          R.drawable.emoji_9,
+          R.drawable.emoji_10,
+          R.drawable.emoji_11,
+          R.drawable.emoji_12
   };
 
   private float convertIntervalToSpeed(long interval) {//平滑轉換速速度公式

@@ -13,7 +13,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="12dp"
-        android:background="@drawable/baseline_achievement"
         tools:ignore="MissingConstraints">
 
         <!-- 圖示 -->
@@ -21,7 +20,6 @@
             android:id="@+id/achievementIcon"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/baseline_achievement"
             />
 
         <!-- 描述文字 -->
