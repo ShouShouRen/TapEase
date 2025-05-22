@@ -35,6 +35,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.airbnb.lottie.LottieAnimationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,7 +50,7 @@ public class ClickDetailActivity extends AppCompatActivity {
   private ImageView faceImage;
   private ProgressBar feverBar;
   private FrameLayout rootLayout;
-  private int localCount = -1;
+  private int localCount = 0;
   private int faceIndex = 0;
   private int feverProgress = 0;
   private boolean isFever = false;
@@ -58,25 +60,24 @@ public class ClickDetailActivity extends AppCompatActivity {
   private boolean soundsLoaded = false;
   private LottieAnimationView fireworkView;
   private long lastClickTime = 0;
-
-
+  private String currentDate;
 
   private int[] faceImages = {
-          R.drawable.emoji_1,
-          R.drawable.emoji_2,
-          R.drawable.emoji_3,
-          R.drawable.emoji_4,
-          R.drawable.emoji_5,
-          R.drawable.emoji_6,
-          R.drawable.emoji_7,
-          R.drawable.emoji_8,
-          R.drawable.emoji_9,
-          R.drawable.emoji_10,
-          R.drawable.emoji_11,
-          R.drawable.emoji_12
+      R.drawable.emoji_1,
+      R.drawable.emoji_2,
+      R.drawable.emoji_3,
+      R.drawable.emoji_4,
+      R.drawable.emoji_5,
+      R.drawable.emoji_6,
+      R.drawable.emoji_7,
+      R.drawable.emoji_8,
+      R.drawable.emoji_9,
+      R.drawable.emoji_10,
+      R.drawable.emoji_11,
+      R.drawable.emoji_12
   };
 
-  private float convertIntervalToSpeed(long interval) {//平滑轉換速速度公式
+  private float convertIntervalToSpeed(long interval) {// 平滑轉換速速度公式
     // 限制範圍 100ms ~ 800ms
     interval = Math.max(100, Math.min(interval, 800));
 
@@ -88,7 +89,7 @@ public class ClickDetailActivity extends AppCompatActivity {
   }
 
   @Override
-  protected void onDestroy() {//釋放資源
+  protected void onDestroy() {// 釋放資源
     super.onDestroy();
     if (soundPool != null) {
       soundPool.release();
@@ -97,12 +98,14 @@ public class ClickDetailActivity extends AppCompatActivity {
   }
 
   @RequiresApi(api = Build.VERSION_CODES.O)
-  @SuppressLint({"SetTextI18n", "ClickableViewAccessibility"})
+  @SuppressLint({ "SetTextI18n", "ClickableViewAccessibility" })
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_home_detail);
-    
+
+    currentDate = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date());
+
     fireworkView = findViewById(R.id.fireworkView);
     fireworkView.setAnimation("firework_animation.json");
     releaseCount = findViewById(R.id.releaseCount);
@@ -113,14 +116,14 @@ public class ClickDetailActivity extends AppCompatActivity {
     feverBar = findViewById(R.id.energyBar);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       AudioAttributes audioAttributes = new AudioAttributes.Builder()
-              .setUsage(AudioAttributes.USAGE_GAME)
-              .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-              .build();
+          .setUsage(AudioAttributes.USAGE_GAME)
+          .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+          .build();
 
       soundPool = new SoundPool.Builder()
-              .setMaxStreams(5) // 可同時播放的最大聲音數
-              .setAudioAttributes(audioAttributes)
-              .build();
+          .setMaxStreams(5) // 可同時播放的最大聲音數
+          .setAudioAttributes(audioAttributes)
+          .build();
     } else {
       soundPool = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
     }
@@ -141,7 +144,6 @@ public class ClickDetailActivity extends AppCompatActivity {
     vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
     releaseCount.setText("載入中...");
-    localCount = -1;
     getClickCount("today");
 
     faceContainer.setOnTouchListener((v, event) -> {
@@ -165,7 +167,6 @@ public class ClickDetailActivity extends AppCompatActivity {
       return true;
     });
 
-
     Handler decayHandler = new Handler();
     Runnable decayRunnable = new Runnable() {
       @Override
@@ -183,7 +184,8 @@ public class ClickDetailActivity extends AppCompatActivity {
   }
 
   private void handleClickAt(float clickX, float clickY) {
-    if (localCount < 0) return;
+    if (localCount < 0)
+      return;
 
     // 1. 表情切換（每 10 次）
     if (localCount % 10 == 0) {
@@ -196,9 +198,9 @@ public class ClickDetailActivity extends AppCompatActivity {
 
     // 3. 震動
     if (vibrator != null) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
-        }
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
+      }
     }
 
     // 4. 累積 Fever
@@ -218,16 +220,39 @@ public class ClickDetailActivity extends AppCompatActivity {
     if (user != null) {
       String userId = user.getUid();
       FirebaseFirestore db = FirebaseFirestore.getInstance();
-      Map<String, Object> data = new HashMap<>();
-      data.put("timestamp", new Date());
-      db.collection("user_clicks")
-              .document(userId)
-              .collection("clicks")
-              .add(data)
-              .addOnSuccessListener(documentReference -> getClickCount("today"));
+
+      db.runTransaction(transaction -> {
+        DocumentReference counterRef = db.collection("user_clicks")
+            .document(userId)
+            .collection("daily_counts")
+            .document(currentDate);
+
+        DocumentSnapshot snapshot = transaction.get(counterRef);
+
+        if (!snapshot.exists()) {
+          Map<String, Object> data = new HashMap<>();
+          data.put("count", 1);
+          data.put("date", currentDate);
+          data.put("lastUpdated", new Date());
+          transaction.set(counterRef, data);
+        } else {
+          // 如果文檔存在，增加計數
+          long newCount = snapshot.getLong("count") + 1;
+          transaction.update(counterRef,
+              "count", newCount,
+              "lastUpdated", new Date());
+        }
+
+        return null;
+      }).addOnSuccessListener(aVoid -> {
+        Log.d("ClickDetailActivity", "Successfully updated click count");
+      }).addOnFailureListener(e -> {
+        Log.e("ClickDetailActivity", "Error updating click count", e);
+        localCount--;
+        releaseCount.setText(getPeriodText("today", localCount));
+      });
     }
   }
-
 
   private void spawnFallingFace(int drawableResId, float startX, float startY) {
     // 在點擊處新增表情
@@ -241,7 +266,7 @@ public class ClickDetailActivity extends AppCompatActivity {
 
     emoji.setX(startX - size / 2);
     emoji.setY(startY - size / 2);
-    //隨機生成每個點的落點
+    // 隨機生成每個點的落點
     Random random = new Random();
     float endX = startX + (random.nextBoolean() ? -random.nextInt(300) : random.nextInt(300));
     float endY = startY + 1000 + random.nextInt(300);
@@ -263,48 +288,47 @@ public class ClickDetailActivity extends AppCompatActivity {
     animator.start();
   }
 
-
   private void startFeverMode() {
     isFever = true;
-    //加入濾鏡效果
+    // 加入濾鏡效果
     View feverOverlay = findViewById(R.id.feverOverlay);
     feverOverlay.setVisibility(View.VISIBLE);
-    //讓畫面閃爍
+    // 讓畫面閃爍
     AlphaAnimation blink = new AlphaAnimation(0.3f, 0.7f);
     blink.setDuration(300);
     blink.setRepeatMode(Animation.REVERSE);
     blink.setRepeatCount(Animation.INFINITE);
     feverOverlay.startAnimation(blink);
-    //加入煙火動畫效果
+    // 加入煙火動畫效果
     fireworkView.setAnimation("firework_animation.json"); // 字串需對應 assets 下的檔名
     fireworkView.setVisibility(View.VISIBLE);
-    fireworkView.bringToFront();              // 確保在最上層
+    fireworkView.bringToFront(); // 確保在最上層
     fireworkView.playAnimation();
-    //撥放fever音樂
+    // 撥放fever音樂
     int feverStreamId = soundPool.play(feverSound, 1.0f, 1.0f, 1, -1, 1.0f);
     feverBar.setProgress(100);
-      CountDownTimer feverTimer = new CountDownTimer(30000, 1000) {
-        @Override
-        public void onTick(long millisUntilFinished) {
-          feverText.setText("Fever模式中！" + (millisUntilFinished / 1000) + "秒剩餘");
-        }
+    CountDownTimer feverTimer = new CountDownTimer(30000, 1000) {
+      @Override
+      public void onTick(long millisUntilFinished) {
+        feverText.setText("Fever模式中！" + (millisUntilFinished / 1000) + "秒剩餘");
+      }
 
-        @Override
-        public void onFinish() {
-          isFever = false;
-          feverProgress = 0;
-          feverBar.setProgress(0);
-          feverText.setText(""); // Fever 結束後清除文字
-          releaseCount.setText(getPeriodText("today", localCount));
-          //Fever 結束時清除動畫
-          feverOverlay.clearAnimation();
-          feverOverlay.setVisibility(View.GONE);
-          fireworkView.cancelAnimation();
-          fireworkView.setVisibility(View.GONE);
-          //結束fever音樂
-          soundPool.stop(feverStreamId);
-        }
-      }.start();
+      @Override
+      public void onFinish() {
+        isFever = false;
+        feverProgress = 0;
+        feverBar.setProgress(0);
+        feverText.setText(""); // Fever 結束後清除文字
+        releaseCount.setText(getPeriodText("today", localCount));
+        // Fever 結束時清除動畫
+        feverOverlay.clearAnimation();
+        feverOverlay.setVisibility(View.GONE);
+        fireworkView.cancelAnimation();
+        fireworkView.setVisibility(View.GONE);
+        // 結束fever音樂
+        soundPool.stop(feverStreamId);
+      }
+    }.start();
   }
 
   private void updateEnergyBarAnimated(int progress) {
@@ -313,7 +337,6 @@ public class ClickDetailActivity extends AppCompatActivity {
     progressAnimator.setInterpolator(new DecelerateInterpolator());
     progressAnimator.start();
   }
-
 
   public void Onback(View view) {
     finish();
@@ -336,43 +359,32 @@ public class ClickDetailActivity extends AppCompatActivity {
 
   private void getClickCount(String period) {
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-    if (user == null) return;
+    if (user == null)
+      return;
     String userId = user.getUid();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
-    java.util.Calendar cal = java.util.Calendar.getInstance();
-    java.util.Date fromDate;
-    switch (period) {
-      case "today":
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-        cal.set(java.util.Calendar.MINUTE, 0);
-        cal.set(java.util.Calendar.SECOND, 0);
-        cal.set(java.util.Calendar.MILLISECOND, 0);
-        fromDate = cal.getTime();
-        break;
-      case "week":
-        cal.add(java.util.Calendar.DAY_OF_YEAR, -6);
-        fromDate = cal.getTime();
-        break;
-      case "month":
-        cal.add(java.util.Calendar.DAY_OF_YEAR, -29);
-        fromDate = cal.getTime();
-        break;
-      case "year":
-        cal.add(java.util.Calendar.DAY_OF_YEAR, -364);
-        fromDate = cal.getTime();
-        break;
-      default:
-        fromDate = new java.util.Date(0);
-    }
+
+    // 獲取今天的點擊計數
     db.collection("user_clicks")
-            .document(userId)
-            .collection("clicks")
-            .whereGreaterThanOrEqualTo("timestamp", fromDate)
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-              int clickCount = queryDocumentSnapshots.size();
-              localCount = clickCount;
-              releaseCount.setText(getPeriodText(period, clickCount));
-            });
+        .document(userId)
+        .collection("daily_counts")
+        .document(currentDate)
+        .get()
+        .addOnSuccessListener(documentSnapshot -> {
+          if (documentSnapshot.exists()) {
+            Long count = documentSnapshot.getLong("count");
+            if (count != null) {
+              localCount = count.intValue();
+              releaseCount.setText(getPeriodText("today", localCount));
+            }
+          } else {
+            localCount = 0;
+            releaseCount.setText(getPeriodText("today", 0));
+          }
+        })
+        .addOnFailureListener(e -> {
+          Log.e("ClickDetailActivity", "Error getting click count", e);
+          releaseCount.setText("載入失敗");
+        });
   }
 }

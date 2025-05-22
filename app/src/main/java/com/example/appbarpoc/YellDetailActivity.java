@@ -8,6 +8,7 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -19,8 +20,12 @@ import androidx.core.app.ActivityCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class YellDetailActivity extends AppCompatActivity {
 
@@ -162,13 +167,39 @@ public class YellDetailActivity extends AppCompatActivity {
             if (user != null) {
                 String userId = user.getUid();
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
-                java.util.Map<String, Object> data = new java.util.HashMap<>();
-                data.put("timestamp", new Date());
-                data.put("maxDecibel", maxDecibel);
-                db.collection("user_yells")
-                        .document(userId)
-                        .collection("records")
-                        .add(data);
+
+                // 獲取今天的日期字串
+                String todayStr = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date());
+
+                // 使用事務來更新音量記錄
+                db.runTransaction(transaction -> {
+                    DocumentReference recordRef = db.collection("user_yells")
+                            .document(userId)
+                            .collection("daily_records")
+                            .document(todayStr);
+
+                    DocumentSnapshot snapshot = transaction.get(recordRef);
+
+                    if (!snapshot.exists()) {
+                        // 如果文檔不存在，創建新文檔
+                        Map<String, Object> data = new HashMap<>();
+                        data.put("maxDecibel", maxDecibel);
+                        data.put("lastUpdated", new Date());
+                        transaction.set(recordRef, data);
+                    } else {
+                        // 如果文檔存在，更新最大分貝值（如果新的更大）
+                        Double currentMax = snapshot.getDouble("maxDecibel");
+                        if (currentMax == null || maxDecibel > currentMax) {
+                            transaction.update(recordRef,
+                                    "maxDecibel", maxDecibel,
+                                    "lastUpdated", new Date());
+                        }
+                    }
+
+                    return null;
+                }).addOnFailureListener(e -> {
+                    Log.e("YellDetailActivity", "Error updating volume record", e);
+                });
             }
         }
     }
