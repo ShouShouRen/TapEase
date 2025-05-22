@@ -23,4 +23,9 @@
         <item>近30天</item>
         <item>今年</item>
     </string-array>
+    <string-array name="chart_type_options">
+        <item>點擊數</item>
+        <item>最大音量</item>
+    </string-array>
+
 </resources>

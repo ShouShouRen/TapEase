@@ -26,6 +26,7 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -94,10 +95,11 @@ public class StatisticsFragment extends Fragment {
 
     private void fetchStatistics() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null)
-            return;
+        if (user == null) return;
+
         String userId = user.getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+
         Calendar cal = Calendar.getInstance();
         Date fromDate;
         switch (periods[currentPeriodIndex]) {
@@ -123,26 +125,39 @@ public class StatisticsFragment extends Fragment {
             default:
                 fromDate = new Date(0);
         }
+
+        // 點擊數查詢
         db.collection("user_clicks")
                 .document(userId)
-                .collection("clicks")
-                .whereGreaterThanOrEqualTo("timestamp", fromDate)
+                .collection("daily_counts")
                 .get()
-                .addOnSuccessListener(clickSnapshots -> {
-                    clickCount = clickSnapshots.size();
+                .addOnSuccessListener(clickDocs -> {
+                    clickCount = 0;
+                    for (QueryDocumentSnapshot doc : clickDocs) {
+                        Timestamp ts = doc.getTimestamp("lastUpdated");
+                        if (ts != null && ts.toDate().after(fromDate)) {
+                            Long c = doc.getLong("count");
+                            if (c != null) clickCount += c;
+                        }
+                    }
+
+                    // 音量查詢
                     db.collection("user_yells")
                             .document(userId)
-                            .collection("records")
-                            .whereGreaterThanOrEqualTo("timestamp", fromDate)
+                            .collection("daily_records")
                             .get()
-                            .addOnSuccessListener(yellSnapshots -> {
+                            .addOnSuccessListener(yellDocs -> {
                                 maxDecibel = 0.0;
-                                for (QueryDocumentSnapshot doc : yellSnapshots) {
-                                    Double d = doc.getDouble("maxDecibel");
-                                    if (d != null && d > maxDecibel) {
-                                        maxDecibel = d;
+                                for (QueryDocumentSnapshot doc : yellDocs) {
+                                    Timestamp ts = doc.getTimestamp("lastUpdated");
+                                    if (ts != null && ts.toDate().after(fromDate)) {
+                                        Double d = doc.getDouble("maxDecibel");
+                                        if (d != null && d > maxDecibel) {
+                                            maxDecibel = d;
+                                        }
                                     }
                                 }
+
                                 updateChart();
                                 textView.setText(getPeriodText(periods[currentPeriodIndex], clickCount, maxDecibel));
                             });

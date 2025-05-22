@@ -28,6 +28,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,7 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 public class AchievementActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -65,22 +65,38 @@ public class AchievementActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
     }
+
     public void Onback(View view) {
         finish();
     }
+
     private void getClickCountAndCheckAchievements() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             String userId = user.getUid();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
-            CollectionReference clicksRef = db.collection("user_clicks").document(userId).collection("clicks");
 
-            clicksRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
-                int clickCount = queryDocumentSnapshots.size();
-                checkAchievements(clickCount); // 檢查成就
-            });
+            // 獲取所有日期的點擊計數
+            db.collection("user_clicks")
+                    .document(userId)
+                    .collection("daily_counts")
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        int totalClicks = 0;
+                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                            Long count = doc.getLong("count");
+                            if (count != null) {
+                                totalClicks += count;
+                            }
+                        }
+                        checkAchievements(totalClicks); // 檢查成就
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("AchievementActivity", "Error getting click count", e);
+                    });
         }
     }
+
     private void getMaxDecibelAndCheckAchievements() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
@@ -111,9 +127,11 @@ public class AchievementActivity extends AppCompatActivity {
                     });
         }
     }
+
     private void checkLoginStreakAndUnlockAchievement() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) return;
+        if (user == null)
+            return;
 
         String userId = user.getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -126,7 +144,7 @@ public class AchievementActivity extends AppCompatActivity {
             Date lastLoginDate = documentSnapshot.getDate("lastLoginDate");
             Long streak = documentSnapshot.getLong("streakCount");
 
-            final long[] newStreakCount = {(streak == null) ? 0 : streak};
+            final long[] newStreakCount = { (streak == null) ? 0 : streak };
 
             Calendar cal = Calendar.getInstance();
             cal.setTime(today);
@@ -161,8 +179,6 @@ public class AchievementActivity extends AppCompatActivity {
         });
     }
 
-
-
     private void checkVolumeAchievements(double maxDecibel) {
         if (maxDecibel >= 0)
             achievementList.add(new Achievement(R.drawable.ic_volume_bronze, "感謝參與：音量達到 0 dB"));
@@ -175,6 +191,7 @@ public class AchievementActivity extends AppCompatActivity {
 
         adapter.notifyDataSetChanged(); // 更新 RecyclerView 畫面
     }
+
     private void checkAchievements(int clickCount) {
         achievementList.clear(); // 清除舊資料
 
@@ -189,8 +206,9 @@ public class AchievementActivity extends AppCompatActivity {
 
         adapter.notifyDataSetChanged(); // 通知 RecyclerView 更新畫面
     }
+
     private void checkStreakAchievements(int streakCount) {
-        if(streakCount >= 1)
+        if (streakCount >= 1)
             achievementList.add(new Achievement(R.drawable.ic_streak_bronze, "連續登入 1 天"));
         if (streakCount >= 3)
             achievementList.add(new Achievement(R.drawable.ic_streak_bronze, "三日不斷：連續登入 3 天"));
@@ -219,18 +237,22 @@ public class AchievementActivity extends AppCompatActivity {
             return description;
         }
     }
+
     public class AchievementAdapter extends RecyclerView.Adapter<AchievementAdapter.ViewHolder> {
         private List<Achievement> achievements;
         private Context context;
+
         public AchievementAdapter(Context context, List<Achievement> achievements) {
             this.context = context;
             this.achievements = achievements;
         }
+
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(context).inflate(R.layout.item_achievement, parent, false);
             return new ViewHolder(view);
         }
+
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
             Achievement achievement = achievements.get(position);
@@ -244,6 +266,7 @@ public class AchievementActivity extends AppCompatActivity {
                 context.startActivity(Intent.createChooser(shareIntent, "分享成就"));
             });
         }
+
         @Override
         public int getItemCount() {
             return achievements.size();
@@ -262,6 +285,7 @@ public class AchievementActivity extends AppCompatActivity {
             }
         }
     }
+
     private Date getDateOnly(Date date) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
