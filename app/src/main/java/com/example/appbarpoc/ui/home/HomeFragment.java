@@ -6,8 +6,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
@@ -21,14 +23,18 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HomeFragment extends Fragment {
     FirebaseAuth mAuth = FirebaseAuth.getInstance();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     FirebaseUser user = mAuth.getCurrentUser();
     private static final String TAG = "HomeFragment";
+    private EmojiAnimator emojiAnimator;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
-            ViewGroup container, Bundle savedInstanceState) {
+                             ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
 
         try {
@@ -97,6 +103,25 @@ public class HomeFragment extends Fragment {
                         }
                     });
         }
+
+        // emoji動畫初始化
+        FrameLayout emojiContainer = root.findViewById(R.id.emojiContainer);
+        List<Integer> emojiResIds = new ArrayList<>();
+        emojiResIds.add(R.drawable.emoji_1);
+        emojiResIds.add(R.drawable.emoji_2);
+        emojiResIds.add(R.drawable.emoji_3);
+        emojiResIds.add(R.drawable.emoji_4);
+        emojiResIds.add(R.drawable.emoji_5);
+        emojiResIds.add(R.drawable.emoji_6);
+        emojiResIds.add(R.drawable.emoji_7);
+        emojiResIds.add(R.drawable.emoji_8);
+        emojiResIds.add(R.drawable.emoji_9);
+        emojiResIds.add(R.drawable.emoji_10);
+        emojiResIds.add(R.drawable.emoji_11);
+        emojiResIds.add(R.drawable.emoji_12);
+        emojiAnimator = new EmojiAnimator(requireContext(), emojiContainer, emojiResIds);
+        emojiAnimator.start();
+
         return root;
     }
 
@@ -104,5 +129,12 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "HomeFragment resumed");
+        if (emojiAnimator != null) emojiAnimator.start();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (emojiAnimator != null) emojiAnimator.stop();
     }
 }
