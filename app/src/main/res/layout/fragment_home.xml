@@ -115,7 +115,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="大叫釋放模式"
+                android:text="大叫室"
                 android:textSize="18sp"
                 android:textColor="?android:textColorPrimary"
                 android:layout_marginStart="16dp"/>
@@ -156,7 +156,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="分享心情"
+                android:text="心事一下"
                 android:textSize="18sp"
                 android:textColor="?android:textColorPrimary"
                 android:layout_marginStart="16dp"/>
