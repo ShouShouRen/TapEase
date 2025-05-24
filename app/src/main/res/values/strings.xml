@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">點滴輕鬆</string>
+    <string name="app_name">崩一下</string>
     <string name="tab_today">今日</string>
     <string name="tab_week">7天</string>
     <string name="tab_month">30天</string>
@@ -7,7 +7,7 @@
     <string name="title_home">首頁</string>
     <string name="title_statistics">統計</string>
     <string name="title_leaderboard">排行榜</string>
-    <string name="title_relaxation">舒壓</string>
+    <string name="title_relaxation">呼一口氣</string>
     <string name="change_password">修改密碼</string>
     <string name="logout">登出</string>
     <string name="nav_header_desc">用戶頭像</string>
